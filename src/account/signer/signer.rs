@@ -1,5 +1,5 @@
 use bip32::XPrv;
-use secp256k1::{ecdsa::Signature, Message, Secp256k1, SecretKey};
+use secp256k1::{ecdsa::Signature, Secp256k1, SecretKey};
 
 use crate::Signable;
 
@@ -9,10 +9,16 @@ use crate::Signable;
 /// # Example
 ///
 /// ```
-/// use walleth::Signer;
+/// use walleth::{Signer, Signable, HDWallet};
 ///
-/// let signer = Signer::new(private_key);
-/// let signature = signer.sign(&[0; 32]);
+/// let hdwallet = HDWallet::new();
+/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
+///
+/// let signer = Signer::new(private_key).unwrap();
+/// let message = Signable::new(&[0; 32]).unwrap();
+/// let signature = signer.sign(&message);
+///
+/// assert!(signature.is_ok());
 /// ```
 pub struct Signer {
 	/// The secret key, derived from a private key
@@ -25,9 +31,14 @@ impl Signer {
 	/// # Example
 	///
 	/// ```
-	/// use walleth::Signer;
+	/// use walleth::{Signer, Signable, HDWallet};
+	///
+	/// let hdwallet = HDWallet::new();
+	/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
 	///
 	/// let signer = Signer::new(private_key);
+	///
+	/// assert!(signer.is_ok());
 	/// ```
 	pub fn new(private_key: XPrv) -> Result<Self, String> {
 		let secret_key = get_secret_key_from_private_key(&private_key)?;
@@ -41,30 +52,19 @@ impl Signer {
 	/// # Example
 	///
 	/// ```
-	/// use walleth::Signer;
+	/// use walleth::{Signer, Signable, HDWallet};
 	///
-	/// let signer = Signer::new(private_key);
-	/// let signature = signer.sign(&[0; 32]);
+	/// let hdwallet = HDWallet::new();
+	/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
+	/// let signer = Signer::new(private_key).unwrap();
+	/// let message = Signable::new(&[0; 32]).unwrap();
+	///
+	/// let signature = signer.sign(&message);
+	///
+	/// assert!(signature.is_ok());
 	/// ```
 	pub fn sign(&self, signable: &Signable) -> Result<Signature, String> {
 		Ok(Secp256k1::new().sign_ecdsa(&signable.to_signable_message(), &self.secret_key))
-	}
-}
-
-/// Parse a message digest
-/// Returns a Message
-///
-/// # Example
-///
-/// ```
-/// use walleth::signer::parse_message_digest;
-///
-/// let message = parse_message_digest(&[0; 32]);
-/// ```
-pub fn parse_message_digest(message: &[u8]) -> Result<Message, String> {
-	match Message::from_slice(message) {
-		Ok(message) => Ok(message),
-		Err(e) => Err(e.to_string()),
 	}
 }
 

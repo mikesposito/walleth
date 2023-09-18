@@ -157,7 +157,8 @@ impl Vault {
 	/// use walleth::Vault;
 	///
 	/// let mut vault = Vault::new();
-	/// vault.lock();
+	/// 
+	/// vault.lock(b"my secret password");
 	/// ```
 	pub fn lock(&mut self, password: &[u8]) -> Result<(), String> {
 		match &self.hdwallet {
