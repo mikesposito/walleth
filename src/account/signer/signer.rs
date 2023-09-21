@@ -15,7 +15,7 @@ use crate::Signable;
 ///
 /// let signer = Signer::new(private_key.to_bytes());
 /// assert!(signer.is_ok());
-/// 
+///
 /// let signature = signer.unwrap().sign(&message);
 /// ```
 pub struct Signer {
