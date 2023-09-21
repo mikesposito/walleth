@@ -29,7 +29,7 @@ use crate::{signer::Signer, Account, EncryptionKey, HDWallet, Safe};
 ///
 /// // Use a signer from the vault
 /// let signature = vault.use_signer(0, |signer| {
-///  signer.sign(&Signable::from_str("Hello world!").unwrap())
+///  signer.sign(&Signable::from_str("Hello world!"))
 /// });
 ///
 /// assert!(signature.is_ok());
@@ -135,7 +135,7 @@ impl Vault {
 	/// use walleth::{Vault, Signable};
 	///
 	/// let mut vault = Vault::new();
-	/// let message = Signable::from_str("Hello world!").unwrap();
+	/// let message = Signable::from_str("Hello world!");
 	/// vault.add_key().unwrap();
 	///
 	/// let signature = vault.use_signer(0, |signer| {

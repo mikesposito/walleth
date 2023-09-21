@@ -68,7 +68,7 @@ mod use_signer {
 		let message = Signable::from_bytes(b"Hello world!");
 
 		let signature = keychain
-			.use_signer(key.address, |signer| signer.sign(&message).unwrap())
+			.use_signer(key.address, |signer| signer.sign(&message))
 			.unwrap();
 
 		assert!(Secp256k1::new()

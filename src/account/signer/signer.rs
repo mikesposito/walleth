@@ -10,14 +10,13 @@ use crate::Signable;
 /// ```
 /// use walleth::{Signer, Signable, HDWallet};
 ///
-/// let hdwallet = HDWallet::new();
-/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
+/// let private_key = HDWallet::new().private_key_at_path(0, 0, 0).unwrap();
+/// let message = Signable::new(&[0; 32]);
 ///
-/// let signer = Signer::new(private_key).unwrap();
-/// let message = Signable::new(&[0; 32]).unwrap();
-/// let signature = signer.sign(&message);
+/// let signer = Signer::new(private_key.to_bytes());
+/// assert!(signer.is_ok());
 ///
-/// assert!(signature.is_ok());
+/// let signature = signer.unwrap().sign(&message);
 /// ```
 pub struct Signer {
 	/// The secret key, derived from a private key
@@ -25,7 +24,7 @@ pub struct Signer {
 }
 
 impl Signer {
-	/// Create a new signer from a private key
+	/// Create a new signer from a private key bytes
 	///
 	/// # Example
 	///
@@ -35,7 +34,7 @@ impl Signer {
 	/// let hdwallet = HDWallet::new();
 	/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
 	///
-	/// let signer = Signer::new(private_key);
+	/// let signer = Signer::new(private_key.to_bytes());
 	///
 	/// assert!(signer.is_ok());
 	/// ```
@@ -55,15 +54,13 @@ impl Signer {
 	///
 	/// let hdwallet = HDWallet::new();
 	/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
-	/// let signer = Signer::new(private_key).unwrap();
-	/// let message = Signable::new(&[0; 32]).unwrap();
+	/// let signer = Signer::new(private_key.to_bytes()).unwrap();
+	/// let message = Signable::new(&[0; 32]);
 	///
 	/// let signature = signer.sign(&message);
-	///
-	/// assert!(signature.is_ok());
 	/// ```
-	pub fn sign(&self, signable: &Signable) -> Result<Signature, String> {
-		Ok(Secp256k1::new().sign_ecdsa(&signable.to_signable_message(), &self.secret_key))
+	pub fn sign(&self, signable: &Signable) -> Signature {
+		Secp256k1::new().sign_ecdsa(&signable.to_signable_message(), &self.secret_key)
 	}
 }
 
@@ -78,7 +75,7 @@ impl Signer {
 /// let hdwallet = HDWallet::new();
 /// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
 ///
-/// let secret_key = get_secret_key_from_bytes(&private_key);
+/// let secret_key = get_secret_key_from_bytes(private_key.to_bytes());
 ///
 /// assert!(secret_key.is_ok());
 /// ```
