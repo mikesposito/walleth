@@ -129,6 +129,9 @@ impl Keychain {
 	/// assert!(!key.is_ok());
 	/// ```
 	pub fn lock(&mut self, password: &str) -> Result<(), String> {
+		self.store.update(|state| {
+			state.accounts = vec![];
+		});
 		self.vault.lock(password.as_bytes())
 	}
 
@@ -140,14 +143,20 @@ impl Keychain {
 	/// use walleth::Keychain;
 	///
 	/// let mut keychain = Keychain::new();
+	/// let account = keychain.add_account().unwrap();
+	/// keychain.lock("password").unwrap();
 	///
-	/// keychain.unlock("password");
-	/// let key = keychain.add_account();
+	/// let recovered_accounts = keychain.unlock("password").unwrap();
 	///
-	/// assert!(key.is_ok());
+	/// assert_eq!(account.address, recovered_accounts[0].address);
 	/// ```
-	pub fn unlock(&mut self, password: &str) -> Result<(), String> {
-		self.vault.unlock(password.as_bytes())
+	pub fn unlock(&mut self, password: &str) -> Result<&Vec<Account>, String> {
+		let recovered_accounts = self.vault.unlock(password.as_bytes())?;
+		self.store.update(|state| {
+			state.accounts = recovered_accounts.clone();
+		});
+
+		Ok(&self.store.get_state().accounts)
 	}
 }
 

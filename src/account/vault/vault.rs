@@ -148,7 +148,7 @@ impl Vault {
 	where
 		T: FnMut(&Signer) -> R,
 	{
-		let signer = Signer::new(self.private_keys[key_index].clone())?;
+		let signer = Signer::new(self.private_keys[key_index].to_bytes())?;
 
 		Ok(hook(&signer))
 	}
@@ -205,14 +205,15 @@ impl Vault {
 	///
 	/// let mut vault = Vault::new();
 	///
-	/// vault.add_key().unwrap();
+	/// let account = vault.add_key().unwrap();
 	///
 	/// vault.lock(b"my secret password").unwrap();
-	/// vault.unlock(b"my secret password").unwrap();
+	/// let recovered_accounts = vault.unlock(b"my secret password").unwrap();
 	///
-	/// assert!(vault.add_key().is_ok());
+	/// assert_eq!(recovered_accounts.len(), 1);
+	/// assert_eq!(account.address, recovered_accounts[0].address);
 	/// ```
-	pub fn unlock(&mut self, password: &[u8]) -> Result<(), String> {
+	pub fn unlock(&mut self, password: &[u8]) -> Result<Vec<Account>, String> {
 		match &self.safe {
 			Some(safe) => {
 				// The encryption key is recreated from the password and the salt
@@ -231,9 +232,15 @@ impl Vault {
 				// The HD wallet is stored in memory
 				self.hdwallet = Some(hdwallet);
 
-				Ok(())
+				Ok(
+					self
+						.private_keys
+						.iter()
+						.map(|key| Ok(Account::from_extended_public_key(&key.public_key())?))
+						.collect::<Result<Vec<Account>, String>>()?,
+				)
 			}
-			None => Ok(()),
+			None => Err("Vault is not locked".to_string()),
 		}
 	}
 
