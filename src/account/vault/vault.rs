@@ -209,7 +209,7 @@ impl Vault {
 	///
 	/// vault.lock(b"my secret password").unwrap();
 	/// let recovered_accounts = vault.unlock(b"my secret password").unwrap();
-	///	
+	///
 	/// assert_eq!(recovered_accounts.len(), 1);
 	/// assert_eq!(account.address, recovered_accounts[0].address);
 	/// ```
