@@ -1,35 +1,38 @@
 use bip32::XPrv;
 
-use crate::{signer::Signer, Account, HDWallet, Safe, EncryptionKey};
+use crate::{signer::Signer, Account, EncryptionKey, HDWallet, Safe};
 
 /// A `Vault` is a safe wrapper around a Hierarchical Deterministic (HD) wallet
 /// backed by a mnemonic phrase. It can generate new keys and sign transactions.
-/// 
+///
 /// When locked, the mnemonic phrase is encrypted safely and the keys are removed from memory.
 /// When unlocked, the mnemonic phrase is decrypted and the keys are recreated in memory.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use walleth::Vault;
-/// 
+/// use walleth::Signable;
+///
 /// // Create a new vault
-/// let vault = Vault::new();
-/// 
+/// let mut vault = Vault::new();
+///
 /// // Generate new private key from the HD wallet in the vault
-/// vault.add_key();
-/// vault.add_key();
-/// 
+/// vault.add_key().unwrap();
+/// vault.add_key().unwrap();
+///
 /// // Lock the vault
-/// vault.lock(b"my secret password");
-/// 
+/// vault.lock(b"my secret password").unwrap();
+///
 /// // Unlock the vault
-/// vault.unlock(b"my secret password");
-/// 
+/// vault.unlock(b"my secret password").unwrap();
+///
 /// // Use a signer from the vault
-/// vault.use_signer(0, |signer| {
-///  signer.sign(&[0; 32])
+/// let signature = vault.use_signer(0, |signer| {
+///  signer.sign(&Signable::from_str("Hello world!").unwrap())
 /// });
+///
+/// assert!(signature.is_ok());
 /// ```
 #[derive(Clone)]
 pub struct Vault {
@@ -41,7 +44,7 @@ pub struct Vault {
 	private_keys: Vec<XPrv>,
 	/// An encrypted wrapper around the vault.
 	/// Available in-memory only when the vault is locked.
-	/// The safe holds the number of keys in the vault and 
+	/// The safe holds the number of keys in the vault and
 	/// the encryption salt as plaintext metadata
 	safe: Option<Safe<([u8; 16], usize)>>,
 }
@@ -129,12 +132,18 @@ impl Vault {
 	/// # Example
 	///
 	/// ```
-	/// use walleth::Vault;
+	/// use walleth::{Vault, Signable};
 	///
-	/// let vault = Vault::new();
-	/// vault.use_signer(0, |signer| {
-	///  signer.sign(&[0; 32])
+	/// let mut vault = Vault::new();
+	/// let message = Signable::from_str("Hello world!").unwrap();
+	/// vault.add_key().unwrap();
+	///
+	/// let signature = vault.use_signer(0, |signer| {
+	/// 	signer.sign(&message)
 	/// });
+	///
+	/// assert!(signature.is_ok());
+	/// ```
 	pub fn use_signer<T, R>(&self, key_index: usize, mut hook: T) -> Result<R, String>
 	where
 		T: FnMut(&Signer) -> R,
@@ -157,15 +166,16 @@ impl Vault {
 	/// use walleth::Vault;
 	///
 	/// let mut vault = Vault::new();
-	/// vault.lock();
+	///
+	/// vault.lock(b"my secret password");
 	/// ```
 	pub fn lock(&mut self, password: &[u8]) -> Result<(), String> {
 		match &self.hdwallet {
 			Some(hdwallet) => {
 				// Create an encryption key from the password
 				let encryption_key = EncryptionKey::new(password, 1000);
-				// A safe is created with the number of keys in the vault 
-				// and the encryption salt as metadata, and 
+				// A safe is created with the number of keys in the vault
+				// and the encryption salt as metadata, and
 				// the HD wallet as encrypted data bytes
 				self.safe = Some(Safe::from_plain_bytes(
 					(encryption_key.salt, self.private_keys.len()),
@@ -184,33 +194,29 @@ impl Vault {
 	}
 
 	/// Unlock the vault
-	/// 
+	///
 	/// Recreate the HD wallet from the seed,
 	/// recreate the private keys from the HD wallet,
-	/// 
+	///
 	/// # Example
-	/// 
+	///
 	/// ```
 	/// use walleth::Vault;
-	/// 
+	///
 	/// let mut vault = Vault::new();
-	/// 
-	/// vault.add_key();
-	/// 
-	/// vault.lock(b"my secret password");
-	/// vault.unlock(b"my secret password");
-	/// 
-	/// assert_eq!(vault.private_keys.len(), 1);
+	///
+	/// vault.add_key().unwrap();
+	///
+	/// vault.lock(b"my secret password").unwrap();
+	/// vault.unlock(b"my secret password").unwrap();
+	///
+	/// assert!(vault.add_key().is_ok());
 	/// ```
 	pub fn unlock(&mut self, password: &[u8]) -> Result<(), String> {
 		match &self.safe {
 			Some(safe) => {
 				// The encryption key is recreated from the password and the salt
-				let encryption_key = EncryptionKey::with_salt(
-					password,
-					safe.metadata.0,
-					1000,
-				);
+				let encryption_key = EncryptionKey::with_salt(password, safe.metadata.0, 1000);
 				// The seed is decrypted from the safe
 				let recovered_seed = safe.decrypt(&encryption_key.pubk)?;
 				// The HD wallet is recreated from the seed

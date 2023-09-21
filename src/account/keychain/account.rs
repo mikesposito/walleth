@@ -12,6 +12,9 @@ impl Account {
 	/// Create a new `Account` from an extended public key
 	pub fn from_extended_public_key(extended_public_key: &XPub) -> Result<Self, String> {
 		let address = extended_public_key_to_address(extended_public_key)?;
+
+		assert_is_valid_hex_address(address.as_str())?;
+
 		Ok(Account {
 			address: add0x(address),
 			public_key: extended_public_key.to_owned(),
@@ -24,7 +27,9 @@ impl Account {
 /// # Example
 ///
 /// ```
-/// use walleth::assert_is_valid_hex_address;
+/// use walleth::account::assert_is_valid_hex_address;
+///
+/// println!("{}", assert_is_valid_hex_address("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD").is_ok());
 ///
 /// assert_eq!(assert_is_valid_hex_address("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD").is_ok(), true);
 /// ```
@@ -48,9 +53,11 @@ pub fn assert_is_valid_hex_address(value: &str) -> Result<(), String> {
 /// # Example
 ///
 /// ```
-/// use walleth::assert_is_hex;
+/// use walleth::account::assert_is_hex;
 ///
-/// assert_eq!(assert_is_hex("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD").is_ok(), true);
+/// let assertion = assert_is_hex("00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD");
+///
+/// assert!(assertion.is_ok());
 /// ```
 pub fn assert_is_hex(value: &str) -> Result<(), String> {
 	match decode(value) {
@@ -66,8 +73,9 @@ pub fn assert_is_hex(value: &str) -> Result<(), String> {
 /// ```
 /// use walleth::remove0x;
 ///
+/// let unprefixed = remove0x("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD");
 /// assert_eq!(
-///   remove0x("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD"),
+///   unprefixed,
 ///   "00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD",
 /// );
 /// ```

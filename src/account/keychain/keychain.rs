@@ -1,4 +1,4 @@
-use crate::{Controller, Observable, Signer, Account, Vault};
+use crate::{Account, Controller, Observable, Signer, Vault};
 
 #[derive(Clone, Debug)]
 pub struct KeychainState {
@@ -44,6 +44,8 @@ impl Keychain {
 	/// use walleth::Keychain;
 	///
 	/// let keychain = Keychain::from_mnemonic("grocery belt target explain clay essay focus spatial skull brain measure matrix toward visual protect owner stone scale slim ghost panda exact combine game".to_string());
+	///
+	/// assert!(keychain.is_ok());
 	/// ```
 	///
 	pub fn from_mnemonic(mnemonic: String) -> Result<Self, String> {
@@ -63,6 +65,8 @@ impl Keychain {
 	///
 	/// let mut keychain = Keychain::new();
 	/// let key = keychain.add_account();
+	///
+	/// assert!(key.is_ok());
 	/// ```
 	///
 	pub fn add_account(&mut self) -> Result<Account, String> {
@@ -79,15 +83,18 @@ impl Keychain {
 	/// # Example
 	///
 	/// ```
-	/// use walleth::Keychain;
-	/// use walleth::signer::Signer;
+	/// use walleth::{Keychain, Signable};
 	///
-	/// let keychain = Keychain::new();
-	/// let key = keychain.add_account();
+	/// let mut keychain = Keychain::new();
+	/// let key = keychain.add_account().unwrap();
+	/// let message = Signable::from_str("Hello world!").unwrap();
 	///
-	/// keychain.use_signer(key.address, |signer) {
-	///   signer.sign(&[0; 32])
-	/// })
+	/// let signature = keychain.use_signer(key.address, |signer| {
+	///   signer.sign(&message)
+	/// });
+	///
+	/// assert!(signature.is_ok());
+	/// ```
 	pub fn use_signer<T, R>(&self, address: String, hook: T) -> Result<R, String>
 	where
 		T: FnMut(&Signer) -> R,
@@ -115,7 +122,11 @@ impl Keychain {
 	/// use walleth::Keychain;
 	///
 	/// let mut keychain = Keychain::new();
-	/// keychain.lock();
+	///
+	/// keychain.lock("my password").unwrap();
+	/// let key = keychain.add_account();
+	///
+	/// assert!(!key.is_ok());
 	/// ```
 	pub fn lock(&mut self, password: &str) -> Result<(), String> {
 		self.vault.lock(password.as_bytes())
@@ -129,7 +140,11 @@ impl Keychain {
 	/// use walleth::Keychain;
 	///
 	/// let mut keychain = Keychain::new();
+	///
 	/// keychain.unlock("password");
+	/// let key = keychain.add_account();
+	///
+	/// assert!(key.is_ok());
 	/// ```
 	pub fn unlock(&mut self, password: &str) -> Result<(), String> {
 		self.vault.unlock(password.as_bytes())
@@ -147,6 +162,8 @@ impl Controller<KeychainState> for Keychain {
 	///
 	/// let keychain = Keychain::new();
 	/// let state = keychain.get_state();
+	///
+	/// assert_eq!(state.accounts.len(), 0);
 	/// ```
 	fn get_state(&self) -> &KeychainState {
 		&self.store.get_state()
@@ -157,13 +174,16 @@ impl Controller<KeychainState> for Keychain {
 	/// # Example
 	///
 	/// ```
-	/// use walleth::Keychain;
-	/// use walleth::Controller;
+	/// use walleth::{Keychain, Controller, Account};
 	///
 	/// let mut keychain = Keychain::new();
+	/// keychain.add_account();
+	///
 	/// keychain.update(|state| {
-	///  state.accounts.push(Key::from_extended_public_key(&[0; 64]).unwrap());
+	///  state.accounts = vec![];
 	/// });
+	///
+	/// assert_eq!(keychain.get_state().accounts.len(), 0);
 	/// ```
 	fn update<F>(&mut self, updater: F) -> ()
 	where
@@ -182,8 +202,10 @@ impl Controller<KeychainState> for Keychain {
 	///
 	/// let mut keychain = Keychain::new();
 	/// let id = keychain.subscribe(|state| {
-	///  println!("New state: {:?}", state);
+	///   assert_eq!(state.accounts.len(), 1);
 	/// });
+	///
+	/// keychain.add_account();
 	/// ```
 	fn subscribe<F>(&mut self, subscriber: F) -> usize
 	where

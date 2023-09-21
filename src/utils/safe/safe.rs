@@ -14,15 +14,11 @@ use crate::{ChaCha20Poly1305Cipher, CipherKey};
 /// ```
 /// use walleth::Safe;
 ///
-/// let safe = Safe::new("metadata", &[0, 1, 2, 3]);
+/// let safe = Safe::from_plain_bytes("metadata", &[0; 32], &[0, 1, 2, 3, 4]).unwrap();
 ///
 /// assert_eq!(safe.metadata, "metadata");
-/// assert_eq!(safe.get_bytes(), &[0, 1, 2, 3]);
-///
-/// let safe = Safe::from_plain_bytes("metadata", &[0, 32], &[0, 1, 2, 3, 4]).unwrap();
-///
-/// assert_eq!(safe.metadata, "metadata");
-/// assert_eq!(safe.get_bytes(), &[0, 1, 2, 3]);
+/// assert_ne!(safe.get_bytes(), &[0, 1, 2, 3]);
+/// ```
 #[derive(Clone)]
 pub struct Safe<T> {
 	pub metadata: T,
@@ -37,13 +33,14 @@ impl<T> Safe<T> {
 	/// # Example
 	///
 	/// ```
-	/// use walleth::{Safe, Cipher};
+	/// use walleth::{Safe, ChaCha20Poly1305Cipher};
 	///
-  /// let safe = Safe::from_plain_bytes("metadata", &[0, 32], &[0, 1, 2, 3, 4]).unwrap();
-  /// 
-  /// assert_eq!(safe.metadata, "metadata");
-  /// assert_eq!(safe.get_bytes(), &[0, 1, 2, 3, 4]);
-  /// ```
+	/// let key = ChaCha20Poly1305Cipher::new_key();
+	/// let safe = Safe::from_plain_bytes("metadata", &[0_u8; 32], &[0, 1, 2, 3, 4]).unwrap();
+	///
+	/// assert_eq!(safe.metadata, "metadata");
+	/// assert_ne!(safe.get_bytes(), &[0, 1, 2, 3, 4]);
+	/// ```
 	pub fn from_plain_bytes(
 		metadata: T,
 		key: &CipherKey,
@@ -58,19 +55,25 @@ impl<T> Safe<T> {
 		})
 	}
 
-  /// Decrypt the safe with a key. Returns the decrypted bytes.
-  /// 
-  /// # Example
-  /// 
-  /// ```
-  /// use walleth::{Safe, Cipher};
-  /// 
-  /// let safe = Safe::from_plain_bytes("metadata", &[0, 32], &[0, 1, 2, 3, 4]).unwrap();
-  /// 
-  /// let decrypted_bytes = safe.decrypt(&[0, 32]).unwrap();
-  /// ```
-	pub fn decrypt(&self, key: &CipherKey) -> Result<Vec<u8>, String>	{
-		Ok(ChaCha20Poly1305Cipher::decrypt(&key, &self.nonce, &self.encrypted_bytes)?)
+	/// Decrypt the safe with a key. Returns the decrypted bytes.
+	///
+	/// # Example
+	///
+	/// ```
+	/// use walleth::Safe;
+	///
+	/// let safe = Safe::from_plain_bytes("metadata", &[0; 32], &[0, 1, 2, 3, 4]).unwrap();
+	///
+	/// let decrypted_bytes = safe.decrypt(&[0_u8; 32]);
+	///
+	/// assert_eq!(decrypted_bytes.unwrap(), &[0, 1, 2, 3, 4]);
+	/// ```
+	pub fn decrypt(&self, key: &CipherKey) -> Result<Vec<u8>, String> {
+		Ok(ChaCha20Poly1305Cipher::decrypt(
+			&key,
+			&self.nonce,
+			&self.encrypted_bytes,
+		)?)
 	}
 
 	/// Get the encrypted bytes
