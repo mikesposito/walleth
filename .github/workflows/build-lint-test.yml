@@ -1,0 +1,44 @@
+name: Build, Lint and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build
+      run: cargo build --verbose
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Lint
+      run: |
+        if ! rustfmt --check ./src/*.rs; then
+          echo "Please run 'rustfmt' to format your code."
+          exit 1
+        fi
+  
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install llvm-tools-preview
+      run: rustup component add llvm-tools-preview
+
+    - name: Install cargo-llvm-cov
+      run: cargo install cargo-llvm-cov
+
+    - name: Run test with coverage
+      run: cargo llvm-cov --verbose
