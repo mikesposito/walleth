@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Test and Lint
 
 on:
   push:
@@ -9,6 +9,18 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Lint
+      run: |
+        if ! rustfmt --check ./src/*.rs; then
+          echo "Please run 'cargo fmt' to format your code."
+          exit 1
+        fi
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -16,6 +28,11 @@ jobs:
 
     - name: Build
       run: cargo build --verbose
+  
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
 
     - name: Test
       run: cargo test --verbose
