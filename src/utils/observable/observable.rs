@@ -61,7 +61,8 @@ where
 	where
 		F: 'static + FnMut(&S),
 	{
-		self.observers
+		self
+			.observers
 			.push(Observer::new(self.observers.len(), Box::new(subscriber)));
 		self.observers.len() - 1
 	}

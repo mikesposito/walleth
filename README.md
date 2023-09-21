@@ -8,6 +8,7 @@ A (WIP) Rust library for easily create, manage, use and protect Ethereum account
   - [Keychain](#keychain)
   - [Vault](#vault)
   - [Safe](#safe)
+  - [HDWallet](#hdwallet)
 
 ## Modules
 
@@ -39,15 +40,20 @@ keychain.subscribe(|state| {
 });
 
 // And then lock it!
-keychain.lock("my crazy password");
+keychain.lock("my crazy password").unwrap();
 
 // You forgot to sign something?
 // unlock again..
-keychain.unlock("my crazy password");
+keychain.unlock("my crazy password").unwrap();
+
+use walleth::Signable
+
+// Create a message to sign
+let message = Signable::from_str("Hello walleth!").unwrap();
 
 // ..and use a signer!
 let signature = keychain.use_signer(account.address, |signer| {
-  Ok(signer.sign(&b"A message")?)
+  signer.sign(&message)
 }).unwrap();
 ```
 
@@ -68,20 +74,27 @@ use walleth::Vault;
 let vault = Vault::new();
 
 // Generate new private key from the HD wallet in the vault
-vault.add_key();
-vault.add_key();
+vault.add_key().unwrap();
+vault.add_key().unwrap();
 
 // Lock the vault
-vault.lock(b"my secret password");
+vault.lock(b"my secret password").unwrap();
 
 // Unlock the vault
-vault.unlock(b"my secret password");
+vault.unlock(b"my secret password").unwrap();
+
+use walleth::Signable;
+
+let message = Signable::from_str("Hello walleth!").unwrap();
 
 // Use a signer from the vault
 vault.use_signer(0, |signer| {
  signer.sign(&[0; 32])
 });
 ```
+
+> [!NOTE]
+> See [Vault documentation page](https://docs.rs/walleth/0.1.0/walleth/account/vault/vault/struct.Vault.html) for more information about the available methods and how to use them.
 
 ### Safe
 
@@ -98,16 +111,19 @@ to store sensitive information.
 ```rust
 use walleth::Safe;
 
-let safe = Safe::new("metadata", &[0, 1, 2, 3]);
+// Let's create a Safe to protect our bytes: &[0, 1, 2, 3]
+// With our fake key of 32 bytes
+let key = [0_u8; 32];
+let safe = Safe::from_plain_bytes("metadata", &key, &[0, 1, 2, 3]).unwrap();
 
-assert_eq!(safe.metadata, "metadata");
-assert_eq!(safe.get_bytes(), &[0, 1, 2, 3]);
+// Unlock it again with our key
+let recovered_bytes = safe.decrypt(&key).unwrap();
 
-let safe = Safe::from_plain_bytes("metadata", &[0, 32], &[0, 1, 2, 3, 4]).unwrap();
-
-assert_eq!(safe.metadata, "metadata");
-assert_eq!(safe.get_bytes(), &[0, 1, 2, 3]);
+assert_eq!(recovered_bytes, &[0, 1, 2, 3]);
 ```
+
+> [!NOTE]
+> See [Safe documentation page](https://docs.rs/walleth/0.1.0/walleth/utils/safe/safe/struct.Safe.html) for more information about the available methods and how to use them.
 
 ### HDWallet
 
@@ -125,3 +141,6 @@ let hdwallet = HDWallet::::from_mnemonic_str("grocery belt target explain clay e
 // Derive private key at path m'/60'/0'/0'/0
 let private_key = hdwallet.private_key_at_path(0, 0, 0);
 ```
+
+> [!NOTE]
+> See [HDWallet documentation page](https://docs.rs/walleth/0.1.0/walleth/utils/hdwallet/hdwallet/struct.HDWallet.html) for more information about the available methods and how to use them.

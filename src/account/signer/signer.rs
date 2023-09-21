@@ -74,9 +74,14 @@ impl Signer {
 /// # Example
 ///
 /// ```
-/// use walleth::get_secret_key_from_private_key;
+/// use walleth::{get_secret_key_from_private_key, HDWallet};
+///
+/// let hdwallet = HDWallet::new();
+/// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
 ///
 /// let secret_key = get_secret_key_from_private_key(&private_key);
+///
+/// assert!(secret_key.is_ok());
 /// ```
 pub fn get_secret_key_from_private_key(private_key: &XPrv) -> Result<SecretKey, String> {
 	match SecretKey::from_slice(&private_key.to_bytes()) {

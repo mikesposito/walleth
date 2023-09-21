@@ -27,8 +27,8 @@ impl Account {
 /// # Example
 ///
 /// ```
-/// use walleth::assert_is_valid_hex_address;
-/// 
+/// use walleth::account::assert_is_valid_hex_address;
+///
 /// println!("{}", assert_is_valid_hex_address("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD").is_ok());
 ///
 /// assert_eq!(assert_is_valid_hex_address("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD").is_ok(), true);
@@ -53,9 +53,9 @@ pub fn assert_is_valid_hex_address(value: &str) -> Result<(), String> {
 /// # Example
 ///
 /// ```
-/// use walleth::assert_is_hex;
-/// 
-/// let assertion = assert_is_hex("0x00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD")
+/// use walleth::account::assert_is_hex;
+///
+/// let assertion = assert_is_hex("00C08c440DbDC3A2a9C9D99b30077a53Ba7eDEAD");
 ///
 /// assert!(assertion.is_ok());
 /// ```
