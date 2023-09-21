@@ -87,7 +87,7 @@ impl Keychain {
 	///
 	/// let mut keychain = Keychain::new();
 	/// let key = keychain.add_account().unwrap();
-	/// let message = Signable::from_str("Hello world!").unwrap();
+	/// let message = Signable::from_str("Hello world!");
 	///
 	/// let signature = keychain.use_signer(key.address, |signer| {
 	///   signer.sign(&message)

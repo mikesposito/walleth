@@ -49,13 +49,16 @@ keychain.unlock("my crazy password").unwrap();
 use walleth::Signable
 
 // Create a message to sign
-let message = Signable::from_str("Hello walleth!").unwrap();
+let message = Signable::from_str("Hello walleth!");
 
 // ..and use a signer!
 let signature = keychain.use_signer(account.address, |signer| {
   signer.sign(&message)
-}).unwrap();
+});
 ```
+
+> [!NOTE]
+> See [Keychain documentation page](https://docs.rs/walleth/0.1.0/walleth/account/keychain/keychain/struct.Keychain.html) for more information about the available methods and how to use them.
 
 ### Vault
 
@@ -85,11 +88,11 @@ vault.unlock(b"my secret password").unwrap();
 
 use walleth::Signable;
 
-let message = Signable::from_str("Hello walleth!").unwrap();
+let message = Signable::from_str("Hello walleth!");
 
 // Use a signer from the vault
 vault.use_signer(0, |signer| {
- signer.sign(&[0; 32])
+ signer.sign(&message)
 });
 ```
 
@@ -139,7 +142,7 @@ let hdwallet = HDWallet::new();
 let hdwallet = HDWallet::::from_mnemonic_str("grocery belt target explain clay essay focus spatial skull brain measure matrix toward visual protect owner stone scale slim ghost panda exact combine game").unwrap();
 
 // Derive private key at path m'/60'/0'/0'/0
-let private_key = hdwallet.private_key_at_path(0, 0, 0);
+let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
 ```
 
 > [!NOTE]
