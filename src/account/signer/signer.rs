@@ -1,4 +1,3 @@
-use bip32::XPrv;
 use secp256k1::{ecdsa::Signature, Secp256k1, SecretKey};
 
 use crate::Signable;
@@ -40,8 +39,8 @@ impl Signer {
 	///
 	/// assert!(signer.is_ok());
 	/// ```
-	pub fn new(private_key: XPrv) -> Result<Self, String> {
-		let secret_key = get_secret_key_from_private_key(&private_key)?;
+	pub fn new(private_key: [u8; 32]) -> Result<Self, String> {
+		let secret_key = get_secret_key_from_bytes(private_key)?;
 
 		Ok(Self { secret_key })
 	}
@@ -74,18 +73,18 @@ impl Signer {
 /// # Example
 ///
 /// ```
-/// use walleth::{get_secret_key_from_private_key, HDWallet};
+/// use walleth::{get_secret_key_from_bytes, HDWallet};
 ///
 /// let hdwallet = HDWallet::new();
 /// let private_key = hdwallet.private_key_at_path(0, 0, 0).unwrap();
 ///
-/// let secret_key = get_secret_key_from_private_key(&private_key);
+/// let secret_key = get_secret_key_from_bytes(&private_key);
 ///
 /// assert!(secret_key.is_ok());
 /// ```
-pub fn get_secret_key_from_private_key(private_key: &XPrv) -> Result<SecretKey, String> {
-	match SecretKey::from_slice(&private_key.to_bytes()) {
+pub fn get_secret_key_from_bytes(private_key: [u8; 32]) -> Result<SecretKey, String> {
+	match SecretKey::from_slice(&private_key) {
 		Ok(keypair) => Ok(keypair),
-		Err(e) => Err(e.to_string()),
+		Err(_) => Err("Invalid private key".to_string()),
 	}
 }

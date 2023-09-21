@@ -65,7 +65,7 @@ mod use_signer {
 	fn it_signs_a_message() {
 		let mut keychain = Keychain::from_mnemonic(MNEMONIC.to_string()).unwrap();
 		let key = keychain.add_account().unwrap();
-		let message = Signable::from_bytes(b"Hello world!").unwrap();
+		let message = Signable::from_bytes(b"Hello world!");
 
 		let signature = keychain
 			.use_signer(key.address, |signer| signer.sign(&message).unwrap())

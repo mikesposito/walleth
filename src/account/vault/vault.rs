@@ -148,7 +148,7 @@ impl Vault {
 	where
 		T: FnMut(&Signer) -> R,
 	{
-		let signer = Signer::new(self.private_keys[key_index].clone())?;
+		let signer = Signer::new(self.private_keys[key_index].to_bytes())?;
 
 		Ok(hook(&signer))
 	}

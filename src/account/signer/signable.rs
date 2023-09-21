@@ -9,24 +9,24 @@ pub struct Signable {
 impl Signable {
 	/// Create a new signable message from a
 	/// message digest byte array
-	pub fn new(message: &[u8]) -> Result<Self, String> {
-		Ok(Self {
-			message: digest_to_message(message)?,
-		})
+	pub fn new(message: &[u8]) -> Self {
+		Self {
+			message: digest_bytes(message),
+		}
 	}
 
 	/// Parse a string into a byte array of a message digest
-	pub fn from_str(str: &str) -> Result<Self, String> {
-		Ok(Signable {
-			message: digest_str(str)?,
-		})
+	pub fn from_str(str: &str) -> Self {
+		Signable {
+			message: digest_str(str),
+		}
 	}
 
 	/// Parse a string into a byte array of a message digest
-	pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-		Ok(Signable {
-			message: digest_bytes(bytes)?,
-		})
+	pub fn from_bytes(bytes: &[u8]) -> Self {
+		Signable {
+			message: digest_bytes(bytes),
+		}
 	}
 
 	/// Get the message digest to be signed
@@ -36,20 +36,14 @@ impl Signable {
 }
 
 /// Digest a message string
-pub fn digest_str(message: &str) -> Result<Message, String> {
+pub fn digest_str(message: &str) -> Message {
 	let hash = sha256::Hash::hash(message.as_bytes());
-	digest_to_message(hash.as_byte_array())
+	Message::from_slice(hash.as_byte_array()).unwrap()
 }
 
 /// Digest message bytes
-pub fn digest_bytes(message: &[u8]) -> Result<Message, String> {
+pub fn digest_bytes(message: &[u8]) -> Message {
 	let hash = sha256::Hash::hash(message);
-	digest_to_message(hash.as_byte_array())
-}
-
-pub fn digest_to_message(digest: &[u8]) -> Result<Message, String> {
-	match Message::from_slice(digest) {
-		Ok(message) => Ok(message),
-		Err(e) => Err(e.to_string()),
-	}
+	// Unwrap is safe because the hash is always 32 bytes
+	Message::from_slice(hash.as_byte_array()).unwrap()
 }
