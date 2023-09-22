@@ -1,5 +1,6 @@
-use bitcoin_hashes::{sha256, Hash};
 use secp256k1::Message;
+
+use crate::utils::crypto::sha3;
 
 #[derive(Debug, Clone)]
 pub struct Signable {
@@ -37,13 +38,11 @@ impl Signable {
 
 /// Digest a message string
 pub fn digest_str(message: &str) -> Message {
-  let hash = sha256::Hash::hash(message.as_bytes());
-  Message::from_slice(hash.as_byte_array()).unwrap()
+  Message::from_slice(&sha3::hash(message.as_bytes())).unwrap()
 }
 
 /// Digest message bytes
 pub fn digest_bytes(message: &[u8]) -> Message {
-  let hash = sha256::Hash::hash(message);
   // Unwrap is safe because the hash is always 32 bytes
-  Message::from_slice(hash.as_byte_array()).unwrap()
+  Message::from_slice(&sha3::hash(message)).unwrap()
 }
