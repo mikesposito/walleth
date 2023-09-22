@@ -1,7 +1,7 @@
 use hmac::Hmac;
 use pbkdf2::pbkdf2;
 use rand_core::{OsRng, RngCore};
-use sha2::Sha256;
+use sha3::Keccak256;
 
 /// A Public Key & Salt pair that can be used for simmetric encryption,
 /// compatible with ChaCha20Poly1305
@@ -27,7 +27,7 @@ impl EncryptionKey {
 
     // Key derivation
     let mut pubk = [0; 32];
-    if let Err(_) = pbkdf2::<Hmac<Sha256>>(password, &salt, rounds, &mut pubk) {
+    if let Err(_) = pbkdf2::<Hmac<Keccak256>>(password, &salt, rounds, &mut pubk) {
       panic!("Key derivation failed")
     }
 
@@ -39,7 +39,7 @@ impl EncryptionKey {
   pub fn with_salt(password: &[u8], salt: [u8; 16], rounds: u32) -> Self {
     // Key derivation
     let mut pubk = [0; 32];
-    if let Err(_) = pbkdf2::<Hmac<Sha256>>(password, &salt, rounds, &mut pubk) {
+    if let Err(_) = pbkdf2::<Hmac<Keccak256>>(password, &salt, rounds, &mut pubk) {
       panic!("Key derivation failed")
     }
 
