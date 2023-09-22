@@ -8,11 +8,11 @@ description = "A (WIP) Rust library for easily create, manage, use and protect E
 edition = "2021"
 repository = "https://github.com/mikesposito/walleth/"
 keywords = [
-	"language",
-	"cli",
-	"http-client",
-	"api-client",
-	"json-selector",
+	"ethereum",
+	"wallet",
+	"library",
+	"crypto",
+	"signing",
 ]
 
 [dependencies]
