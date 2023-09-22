@@ -1,8 +1,9 @@
 pub mod controller;
+pub mod crypto;
 pub mod hdwallet;
+pub mod hex;
 pub mod observable;
 pub mod safe;
-pub mod crypto;
 
 pub use controller::Controller;
 pub use hdwallet::*;

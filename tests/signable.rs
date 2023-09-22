@@ -1,6 +1,6 @@
 use walleth::Signable;
 
-const MESSAGE_DIGEST: &str = "c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a";
+const MESSAGE_DIGEST: &str = "ecd0e108a98e192af1d2c25055f4e3bed784b5c877204e73219a5203251feaab";
 
 mod new {
 	use super::*;

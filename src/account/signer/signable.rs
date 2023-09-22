@@ -1,6 +1,6 @@
 use secp256k1::Message;
 
-use crate::utils::crypto::sha3;
+use crate::utils::crypto::sha3::keccak256;
 
 #[derive(Debug, Clone)]
 pub struct Signable {
@@ -38,11 +38,11 @@ impl Signable {
 
 /// Digest a message string
 pub fn digest_str(message: &str) -> Message {
-  Message::from_slice(&sha3::hash(message.as_bytes())).unwrap()
+  Message::from_slice(&keccak256(message.as_bytes())).unwrap()
 }
 
 /// Digest message bytes
 pub fn digest_bytes(message: &[u8]) -> Message {
   // Unwrap is safe because the hash is always 32 bytes
-  Message::from_slice(&sha3::hash(message)).unwrap()
+  Message::from_slice(&keccak256(message)).unwrap()
 }
