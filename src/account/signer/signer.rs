@@ -1,6 +1,6 @@
 use secp256k1::{ecdsa::Signature, Secp256k1, SecretKey};
 
-use crate::Signable;
+use crate::{Signable, SignerError};
 
 /// A `Signer` is a safe wrapper around a Hierarchical Deterministic (HD) wallet
 /// secret key. It can sign messages.
@@ -38,8 +38,9 @@ impl Signer {
   ///
   /// assert!(signer.is_ok());
   /// ```
-  pub fn new(private_key: [u8; 32]) -> Result<Self, String> {
-    let secret_key = get_secret_key_from_bytes(private_key)?;
+  pub fn new(private_key: [u8; 32]) -> Result<Self, SignerError> {
+    let secret_key =
+      get_secret_key_from_bytes(private_key).or(Err(SignerError::InvalidPrivateKey))?;
 
     Ok(Self { secret_key })
   }
