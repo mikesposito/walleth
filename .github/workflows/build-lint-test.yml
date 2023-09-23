@@ -24,8 +24,9 @@ jobs:
 
     - name: Lint
       run: |
-        if ! rustfmt --check ./src/*.rs; then
-          echo "Please run 'rustfmt' to format your code."
+        rustfmt ./**/*.rs
+        if ! git diff --exit-code; then
+          echo "Please run 'rustfmt --check ./**/*.rs' to lint your code."
           exit 1
         fi
   
