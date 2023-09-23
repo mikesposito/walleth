@@ -1,4 +1,4 @@
-use crate::{Account, Controller, Observable, Signer, Vault};
+use crate::{Account, Controller, KeychainError, Observable, Signer, Vault};
 
 #[derive(Clone, Debug)]
 pub struct KeychainState {
@@ -48,7 +48,7 @@ impl Keychain {
   /// assert!(keychain.is_ok());
   /// ```
   ///
-  pub fn from_mnemonic(mnemonic: String) -> Result<Self, String> {
+  pub fn from_mnemonic(mnemonic: String) -> Result<Self, KeychainError> {
     Ok(Keychain {
       vault: Vault::from_phrase(mnemonic)?,
       store: Observable::new(KeychainState { accounts: vec![] }),
@@ -69,7 +69,7 @@ impl Keychain {
   /// assert!(key.is_ok());
   /// ```
   ///
-  pub fn add_account(&mut self) -> Result<Account, String> {
+  pub fn add_account(&mut self) -> Result<Account, KeychainError> {
     let account = self.vault.add_key()?;
     self.store.update(|state| {
       state.accounts.push(account.clone());
@@ -95,7 +95,7 @@ impl Keychain {
   ///
   /// assert!(signature.is_ok());
   /// ```
-  pub fn use_signer<T, R>(&self, address: String, hook: T) -> Result<R, String>
+  pub fn use_signer<T, R>(&self, address: String, hook: T) -> Result<R, KeychainError>
   where
     T: FnMut(&Signer) -> R,
   {
@@ -107,8 +107,8 @@ impl Keychain {
       .enumerate()
       .find(|(_, key)| key.address == address)
     {
-      Some((key_index, _)) => self.vault.use_signer(key_index, hook),
-      None => Err("Key not found".to_string()),
+      Some((key_index, _)) => Ok(self.vault.use_signer(key_index, hook)?),
+      None => Err(KeychainError::KeyNotFoundForAddress(address)),
     }
   }
 
@@ -128,11 +128,12 @@ impl Keychain {
   ///
   /// assert!(!key.is_ok());
   /// ```
-  pub fn lock(&mut self, password: &str) -> Result<(), String> {
+  pub fn lock(&mut self, password: &str) -> Result<(), KeychainError> {
     self.store.update(|state| {
       state.accounts = vec![];
     });
-    self.vault.lock(password.as_bytes())
+
+    Ok(self.vault.lock(password.as_bytes())?)
   }
 
   /// Unlock the keychain
@@ -150,7 +151,7 @@ impl Keychain {
   ///
   /// assert_eq!(account.address, recovered_accounts[0].address);
   /// ```
-  pub fn unlock(&mut self, password: &str) -> Result<&Vec<Account>, String> {
+  pub fn unlock(&mut self, password: &str) -> Result<&Vec<Account>, KeychainError> {
     let recovered_accounts = self.vault.unlock(password.as_bytes())?;
     self.store.update(|state| {
       state.accounts = recovered_accounts.clone();
