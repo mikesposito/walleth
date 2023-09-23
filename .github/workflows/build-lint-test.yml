@@ -34,11 +34,5 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install llvm-tools-preview
-      run: rustup component add llvm-tools-preview
-
-    - name: Install cargo-llvm-cov
-      run: cargo install cargo-llvm-cov
-
-    - name: Run test with coverage
-      run: cargo llvm-cov --verbose
+    - name: Text
+      run: cargo test
