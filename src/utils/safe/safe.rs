@@ -1,3 +1,5 @@
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
 use crate::{ChaCha20Poly1305Cipher, CipherKey};
 
 /// A safe is a container for encrypted data.
@@ -19,7 +21,7 @@ use crate::{ChaCha20Poly1305Cipher, CipherKey};
 /// assert_eq!(safe.metadata, "metadata");
 /// assert_ne!(safe.get_bytes(), &[0, 1, 2, 3]);
 /// ```
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Safe<T> {
   pub metadata: T,
   encrypted_bytes: Box<[u8]>,
@@ -79,5 +81,25 @@ impl<T> Safe<T> {
   /// Get the encrypted bytes
   pub fn get_bytes(&self) -> &[u8] {
     &self.encrypted_bytes
+  }
+}
+
+impl<T> From<Vec<u8>> for Safe<T>
+where
+  T: DeserializeOwned,
+{
+  fn from(bytes: Vec<u8>) -> Self {
+    bincode::deserialize(&bytes).unwrap()
+  }
+}
+
+impl<T> PartialEq for Safe<T>
+where
+  T: PartialEq,
+{
+  fn eq(&self, other: &Self) -> bool {
+    self.metadata == other.metadata
+      && self.encrypted_bytes == other.encrypted_bytes
+      && self.nonce == other.nonce
   }
 }

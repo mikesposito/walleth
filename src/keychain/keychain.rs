@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{
   keychain::{Account, KeychainError, Signer, Vault},
   utils::{Controller, Observable},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeychainState {
   /// The accounts in the keychain
   /// This is a list of public accounts
@@ -13,6 +15,7 @@ pub struct KeychainState {
 /// A `Keychain` is a collection of accounts with signing capabilities
 /// It is backed by an encrypted vault which holds the mnemonic
 /// and some metadata for generated accounts.
+#[derive(Clone)]
 pub struct Keychain {
   /// The vault
   vault: Vault,
@@ -76,7 +79,7 @@ impl Keychain {
     let account = self.vault.add_key()?;
     self.store.update(|state| {
       state.accounts.push(account.clone());
-    });
+    })?;
     Ok(account)
   }
 
@@ -134,7 +137,7 @@ impl Keychain {
   pub fn lock(&mut self, password: &str) -> Result<(), KeychainError> {
     self.store.update(|state| {
       state.accounts = vec![];
-    });
+    })?;
 
     Ok(self.vault.lock(password.as_bytes())?)
   }
@@ -158,13 +161,13 @@ impl Keychain {
     let recovered_accounts = self.vault.unlock(password.as_bytes())?;
     self.store.update(|state| {
       state.accounts = recovered_accounts.clone();
-    });
+    })?;
 
     Ok(&self.store.get_state().accounts)
   }
 }
 
-impl Controller<KeychainState> for Keychain {
+impl Controller<KeychainState, KeychainError> for Keychain {
   /// Get the state of the keychain
   ///
   /// # Example
@@ -198,11 +201,11 @@ impl Controller<KeychainState> for Keychain {
   ///
   /// assert_eq!(keychain.get_state().accounts.len(), 0);
   /// ```
-  fn update<F>(&mut self, updater: F) -> ()
+  fn update<F>(&mut self, updater: F) -> Result<(), KeychainError>
   where
     F: Fn(&mut KeychainState),
   {
-    self.store.update(updater);
+    Ok(self.store.update(updater)?)
   }
 
   /// Subscribe to state changes
@@ -242,5 +245,11 @@ impl Controller<KeychainState> for Keychain {
   /// keychain.unsubscribe(id);
   fn unsubscribe(&mut self, id: usize) -> () {
     self.store.unsubscribe(id)
+  }
+}
+
+impl PartialEq for Keychain {
+  fn eq(&self, other: &Self) -> bool {
+    self.vault == other.vault
   }
 }

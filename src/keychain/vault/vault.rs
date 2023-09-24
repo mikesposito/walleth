@@ -1,4 +1,5 @@
-use bip32::XPrv;
+use secp256k1::SecretKey;
+use serde::{Deserialize, Serialize};
 
 use crate::{signer::Signer, Account, EncryptionKey, HDWallet, Safe, VaultError};
 
@@ -34,14 +35,14 @@ use crate::{signer::Signer, Account, EncryptionKey, HDWallet, Safe, VaultError};
 ///
 /// assert!(signature.is_ok());
 /// ```
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Vault {
   /// The HD wallet of the vault.
   /// Available in-memory only when the vault is unlocked.
   hdwallet: Option<HDWallet>,
   /// The private keys of the vault.
   /// Empty when the vault is locked.
-  private_keys: Vec<XPrv>,
+  private_keys: Vec<[u8; 32]>,
   /// An encrypted wrapper around the vault.
   /// Available in-memory only when the vault is locked.
   /// The safe holds the number of keys in the vault and
@@ -105,9 +106,9 @@ impl Vault {
       .keypair_at_path(0, 0, index)
       .or(Err(VaultError::KeyDerivation))?;
 
-    self.private_keys.push(private_key);
+    self.private_keys.push(private_key.as_ref().to_owned());
 
-    Ok(Account::from_extended_public_key(&public_key)?)
+    Ok(Account::from_public_key(&public_key)?)
   }
 
   /// Use a `Signer` from the vault, capable of signing transactions
@@ -132,7 +133,7 @@ impl Vault {
   where
     T: FnMut(&Signer) -> R,
   {
-    let signer = Signer::new(self.private_keys[key_index].to_bytes())?;
+    let signer = Signer::new(self.private_keys[key_index])?;
 
     Ok(hook(&signer))
   }
@@ -215,8 +216,8 @@ impl Vault {
         // The number of keys in the vault is retrieved from the safe
         // metadata and private keys are recreated from the HD wallet
         self.private_keys = (0..safe.metadata.1)
-          .map(|index| hdwallet.private_key_at_path(0, 0, index))
-          .collect::<Result<Vec<XPrv>, String>>()
+          .map(|index| Ok(hdwallet.private_key_at_path(0, 0, index)?.to_bytes()))
+          .collect::<Result<Vec<[u8; 32]>, String>>()
           .or(Err(VaultError::KeyDerivation))?;
         // The safe is removed from memory
         self.safe = None;
@@ -228,10 +229,9 @@ impl Vault {
             .private_keys
             .iter()
             .map(|key| {
-              Ok(
-                Account::from_extended_public_key(&key.public_key())
-                  .or(Err(VaultError::AccountCreation))?,
-              )
+              Ok(Account::from_private_key(
+                SecretKey::from_slice(key).or(Err(VaultError::AccountCreation))?,
+              )?)
             })
             .collect::<Result<Vec<Account>, VaultError>>()?,
         )
@@ -246,5 +246,19 @@ impl Vault {
       Some(hdwallet) => Ok(hdwallet),
       None => Err(VaultError::ForbiddenWhileLocked),
     }
+  }
+}
+
+impl From<Vec<u8>> for Vault {
+  fn from(bytes: Vec<u8>) -> Self {
+    bincode::deserialize(&bytes).unwrap()
+  }
+}
+
+impl PartialEq for Vault {
+  fn eq(&self, other: &Self) -> bool {
+    self.hdwallet == other.hdwallet
+      && self.private_keys == other.private_keys
+      && self.safe == other.safe
   }
 }

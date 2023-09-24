@@ -75,7 +75,7 @@ mod use_signer {
       .verify_ecdsa(
         &message.to_signable_message(),
         &signature,
-        &PublicKey::from_slice(&key.public_key.to_bytes()).unwrap()
+        &PublicKey::from_slice(&key.public_key).unwrap()
       )
       .is_ok());
   }
@@ -120,7 +120,7 @@ mod update {
 
     keychain.update(|state| {
       state.accounts = vec![];
-    });
+    }).unwrap();
 
     assert_eq!(keychain.get_state().accounts.len(), 0);
   }
