@@ -1,4 +1,7 @@
-use crate::{Account, Controller, KeychainError, Observable, Signer, Vault};
+use crate::{
+  keychain::{Account, KeychainError, Signer, Vault},
+  utils::{Controller, Observable},
+};
 
 #[derive(Clone, Debug)]
 pub struct KeychainState {

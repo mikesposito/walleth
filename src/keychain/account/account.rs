@@ -18,7 +18,7 @@ impl Account {
     let extended_address = encode(&keccak256(&extended_public_key.to_bytes()));
     let address = extended_address[extended_address.len() - 40..].to_string();
 
-    assert_is_valid_hex_address(&address).or(Err(AccountError::InvalidPublicKey))?;
+    assert_is_valid_hex_address(&address)?;
 
     Ok(Account {
       address: add0x(&address).to_owned(),

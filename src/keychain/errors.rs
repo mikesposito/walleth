@@ -11,8 +11,3 @@ impl From<VaultError> for KeychainError {
     Self::VaultError(error)
   }
 }
-
-#[derive(Debug)]
-pub enum AccountError {
-  InvalidPublicKey,
-}
