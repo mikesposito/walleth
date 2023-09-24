@@ -1,6 +1,9 @@
-use super::Observer;
+use std::sync::{Arc, Mutex};
+
+use super::{ObservableError, Observer};
 
 /// A store for state that can be subscribed to
+#[derive(Clone)]
 pub struct Observable<S> {
   state: S,
   observers: Vec<Observer<S>>,
@@ -24,9 +27,9 @@ where
 
   /// Set the current state
   /// This will call all event listeners with the new state
-  pub fn set_state(&mut self, new_state: S) -> () {
+  pub fn set_state(&mut self, new_state: S) -> Result<(), ObservableError> {
     self.state = new_state;
-    self.emit();
+    Ok(self.emit()?)
   }
 
   /// Update the current state
@@ -47,12 +50,12 @@ where
   /// assert_eq!(store.get_state(), &1);
   /// ```
   ///
-  pub fn update<F>(&mut self, updater: F) -> ()
+  pub fn update<F>(&mut self, updater: F) -> Result<(), ObservableError>
   where
     F: Fn(&mut S),
   {
     updater(&mut self.state);
-    self.emit();
+    Ok(self.emit()?)
   }
 
   /// Subscribe to state changes
@@ -61,9 +64,10 @@ where
   where
     F: 'static + FnMut(&S),
   {
-    self
-      .observers
-      .push(Observer::new(self.observers.len(), Box::new(subscriber)));
+    self.observers.push(Observer::new(
+      self.observers.len(),
+      Arc::new(Mutex::new(subscriber)),
+    ));
     self.observers.len() - 1
   }
 
@@ -73,9 +77,18 @@ where
   }
 
   /// Emit the current state to all subscribers
-  fn emit(&mut self) -> () {
+  fn emit(&mut self) -> Result<(), ObservableError> {
     for observer in &mut self.observers {
-      (observer.callback)(&self.state);
+      let mutex = Arc::clone(&observer.callback);
+
+      let mut guard = match mutex.lock() {
+        Ok(guard) => guard,
+        Err(_) => return Err(ObservableError::UnableToLockObserver),
+      };
+
+      (guard)(&self.state);
     }
+
+    Ok(())
   }
 }

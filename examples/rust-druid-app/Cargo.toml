@@ -1,0 +1,22 @@
+[package]
+name = "walleth-rust-druid-app"
+version = "0.0.0"
+authors = ["mikesposito"]
+readme="README.md"
+edition = "2021"
+repository = "https://github.com/mikesposito/walleth/"
+keywords = [
+	"ethereum",
+	"wallet",
+	"library",
+	"crypto",
+	"signing",
+]
+
+[dependencies]
+druid = "0.8.3"
+walleth = { path = "../../" }
+
+[[bin]]
+name = "walleth-rust-druid-app"
+path = "src/main.rs"

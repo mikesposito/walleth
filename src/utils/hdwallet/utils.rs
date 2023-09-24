@@ -27,36 +27,18 @@ pub fn generate_seed() -> Seed {
   generate_english_mnemonic().to_seed("")
 }
 
-/// Convert a seed to a boxed slice of bytes
-///
-/// # Example
-///
-/// ```
-/// use walleth::{box_seed, generate_seed};
-///
-/// let seed = generate_seed();
-/// let boxed_seed = box_seed(&seed);
-/// ```
-pub fn box_seed(seed: &Seed) -> Box<[u8]> {
-  seed.as_bytes().to_vec().into_boxed_slice()
-}
-
 /// Generate a new seed from a mnemonic phrase
 /// with an empty password
-/// and return it as a boxed slice of bytes
+/// and return it as a vector of bytes
 ///
 /// # Example
 /// ```
-/// use walleth::generate_boxed_seed_bytes;
+/// use walleth::generate_seed_bytes;
 ///
-/// let seed = generate_boxed_seed_bytes();
+/// let seed = generate_seed_bytes();
 /// ```
-pub fn generate_boxed_seed_bytes() -> Box<[u8]> {
-  generate_english_mnemonic()
-    .to_seed("")
-    .as_bytes()
-    .to_vec()
-    .into_boxed_slice()
+pub fn generate_seed_bytes() -> Vec<u8> {
+  generate_english_mnemonic().to_seed("").as_bytes().to_vec()
 }
 
 /// Parse a mnemonic phrase

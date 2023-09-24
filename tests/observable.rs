@@ -11,7 +11,7 @@ fn it_creates_emitter_store() {
 #[test]
 fn it_sets_the_state() {
   let mut store = Observable::new(0);
-  store.set_state(1);
+  store.set_state(1).unwrap();
   assert_eq!(store.get_state(), &1);
 }
 
@@ -24,7 +24,7 @@ fn it_calls_subscriber_callback_when_setting_state() {
   store.subscribe(move |state| {
     r_spy.clone().lock().unwrap().push(state.clone());
   });
-  store.set_state(1);
+  store.set_state(1).unwrap();
 
   assert_eq!(spy.lock().unwrap()[0], 1);
 }
@@ -38,9 +38,9 @@ fn it_calls_subscriber_callback_everytime_when_setting_state() {
   store.subscribe(move |state| {
     r_history.lock().unwrap().push(state.clone());
   });
-  store.set_state(1);
-  store.set_state(2);
-  store.set_state(3);
+  store.set_state(1).unwrap();
+  store.set_state(2).unwrap();
+  store.set_state(3).unwrap();
 
   let locked_history = history.lock().unwrap();
   assert_eq!(locked_history.len(), 3);
@@ -57,10 +57,10 @@ fn it_stops_calling_callback_after_unsubscribe() {
   let id = store.subscribe(move |state| {
     r_history.lock().unwrap().push(state.clone());
   });
-  store.set_state(1);
+  store.set_state(1).unwrap();
 
   store.unsubscribe(id);
-  store.set_state(2);
+  store.set_state(2).unwrap();
 
   assert_eq!(history.lock().unwrap().len(), 1);
 }

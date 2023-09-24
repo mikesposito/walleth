@@ -1,10 +1,12 @@
 use bip32::{XPrv, XPub};
+use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use serde::{Deserialize, Serialize};
 
-use crate::{box_seed, generate_boxed_seed_bytes, get_derivation_path, parse_mnemonic};
+use crate::{generate_seed_bytes, get_derivation_path, parse_mnemonic};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct HDWallet {
-  seed: Box<[u8]>,
+  seed: Vec<u8>,
 }
 
 impl HDWallet {
@@ -19,7 +21,7 @@ impl HDWallet {
   /// ```
   pub fn new() -> Self {
     HDWallet {
-      seed: generate_boxed_seed_bytes(),
+      seed: generate_seed_bytes(),
     }
   }
 
@@ -33,9 +35,7 @@ impl HDWallet {
   /// let hdwallet = HDWallet::from_bytes(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
   /// ```
   pub fn from_bytes(seed: &[u8]) -> Result<Self, String> {
-    Ok(HDWallet {
-      seed: Box::from(seed),
-    })
+    Ok(HDWallet { seed: seed.into() })
   }
 
   /// Create a new `HDWallet` from a mnemonic phrase
@@ -51,7 +51,7 @@ impl HDWallet {
     let seed = parse_mnemonic(mnemonic.to_string())?.to_seed("");
 
     Ok(HDWallet {
-      seed: box_seed(&seed),
+      seed: seed.as_bytes().to_vec(),
     })
   }
 
@@ -114,11 +114,18 @@ impl HDWallet {
     account: usize,
     change: usize,
     index: usize,
-  ) -> Result<(XPrv, XPub), String> {
-    match XPrv::derive_from_path(&self.seed, &get_derivation_path(account, change, index)?) {
-      Ok(private_key) => Ok((private_key.clone(), private_key.public_key())),
-      Err(e) => Err(e.to_string()),
-    }
+  ) -> Result<(SecretKey, PublicKey), String> {
+    let secp = Secp256k1::new();
+    let derived_pvk =
+      XPrv::derive_from_path(&self.seed, &get_derivation_path(account, change, index)?)
+        .or(Err("Invalid derivation path"))?;
+
+    let private_key = SecretKey::from_slice(&derived_pvk.private_key().to_bytes())
+      .or(Err("Invalid private key"))?;
+
+    let public_key = private_key.public_key(&secp);
+
+    Ok((private_key, public_key))
   }
 
   /// Get the seed as a slice of bytes
@@ -133,5 +140,11 @@ impl HDWallet {
   /// ```
   pub fn to_bytes(&self) -> &[u8] {
     &self.seed
+  }
+}
+
+impl PartialEq for HDWallet {
+  fn eq(&self, other: &Self) -> bool {
+    self.seed == other.seed
   }
 }

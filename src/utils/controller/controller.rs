@@ -1,11 +1,16 @@
+use std::error::Error;
+
 /// A controller is a struct that holds a state and allows for updates to that state.
-pub trait Controller<State> {
+pub trait Controller<State, ControllerError>
+where
+  ControllerError: Error,
+{
   /// Get the current state
   fn get_state(&self) -> &State;
 
   /// Update the current state
   /// The updater function will be called with a mutable reference to the current state
-  fn update<F>(&mut self, updater: F) -> ()
+  fn update<F>(&mut self, updater: F) -> Result<(), ControllerError>
   where
     F: Fn(&mut State) -> ();
 
