@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-use crate::{VaultError, observable::ObservableError};
+use crate::{observable::ObservableError, VaultError};
 
 #[derive(Debug)]
 pub enum KeychainError {
@@ -13,7 +13,9 @@ impl Display for KeychainError {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     match self {
       KeychainError::VaultError(error) => write!(f, "Vault error: {}", error),
-      KeychainError::KeyNotFoundForAddress(address) => write!(f, "Key not found for address: {}", address),
+      KeychainError::KeyNotFoundForAddress(address) => {
+        write!(f, "Key not found for address: {}", address)
+      }
       KeychainError::EventEmitterError(error) => write!(f, "Event emitter error: {}", error),
     }
   }

@@ -118,9 +118,11 @@ mod update {
     let mut keychain = Keychain::new();
     keychain.add_account().unwrap();
 
-    keychain.update(|state| {
-      state.accounts = vec![];
-    }).unwrap();
+    keychain
+      .update(|state| {
+        state.accounts = vec![];
+      })
+      .unwrap();
 
     assert_eq!(keychain.get_state().accounts.len(), 0);
   }

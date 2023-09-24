@@ -38,10 +38,7 @@ pub fn generate_seed() -> Seed {
 /// let seed = generate_seed_bytes();
 /// ```
 pub fn generate_seed_bytes() -> Vec<u8> {
-  generate_english_mnemonic()
-    .to_seed("")
-    .as_bytes()
-    .to_vec()
+  generate_english_mnemonic().to_seed("").as_bytes().to_vec()
 }
 
 /// Parse a mnemonic phrase

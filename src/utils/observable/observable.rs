@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use super::{Observer, ObservableError};
+use super::{ObservableError, Observer};
 
 /// A store for state that can be subscribed to
 #[derive(Clone)]
@@ -64,9 +64,10 @@ where
   where
     F: 'static + FnMut(&S),
   {
-    self
-      .observers
-      .push(Observer::new(self.observers.len(), Arc::new(Mutex::new(subscriber))));
+    self.observers.push(Observer::new(
+      self.observers.len(),
+      Arc::new(Mutex::new(subscriber)),
+    ));
     self.observers.len() - 1
   }
 
@@ -79,7 +80,7 @@ where
   fn emit(&mut self) -> Result<(), ObservableError> {
     for observer in &mut self.observers {
       let mutex = Arc::clone(&observer.callback);
-      
+
       let mut guard = match mutex.lock() {
         Ok(guard) => guard,
         Err(_) => return Err(ObservableError::UnableToLockObserver),
