@@ -118,7 +118,7 @@ mod recover {
     keychain.add_account().unwrap();
     let backup = keychain.backup("password").unwrap();
 
-    let recovered= Keychain::restore(backup, "password").unwrap();
+    let recovered = Keychain::restore(backup, "password").unwrap();
 
     assert_eq!(recovered, keychain);
   }

@@ -167,17 +167,17 @@ impl Keychain {
   }
 
   /// Backup the keychain
-  /// 
+  ///
   /// # Example
-  /// 
+  ///
   /// ```
   /// use walleth::Keychain;
-  /// 
+  ///
   /// let mut keychain = Keychain::new();
   /// let account = keychain.add_account().unwrap();
-  /// 
+  ///
   /// let backup = keychain.backup("password").unwrap();
-  /// 
+  ///
   /// assert!(backup.len() > 0);
   /// ```
   pub fn backup(&mut self, password: &str) -> Result<Vec<u8>, KeychainError> {
@@ -193,18 +193,18 @@ impl Keychain {
   }
 
   /// Restore a keychain from a backup
-  /// 
+  ///
   /// # Example
-  /// 
+  ///
   /// ```
   /// use walleth::Keychain;
-  /// 
+  ///
   /// let mut keychain = Keychain::new();
   /// let account = keychain.add_account().unwrap();
   /// let backup = keychain.backup("password").unwrap();
-  /// 
+  ///
   /// let restored_keychain = Keychain::restore(backup, "password").unwrap();
-  /// 
+  ///
   /// assert_eq!(keychain, restored_keychain);
   /// ```
   pub fn restore(bytes: Vec<u8>, password: &str) -> Result<Self, KeychainError> {
@@ -212,7 +212,7 @@ impl Keychain {
       vault: Vault::try_from(bytes)?,
       store: Observable::new(KeychainState { accounts: vec![] }),
     };
-    
+
     keychain.unlock(password)?;
 
     Ok(keychain)

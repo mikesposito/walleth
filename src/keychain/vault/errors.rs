@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-use crate::{AccountError, SignerError, SafeError};
+use crate::{AccountError, SafeError, SignerError};
 
 #[derive(Debug)]
 pub enum VaultError {
@@ -30,7 +30,9 @@ impl Display for VaultError {
       Self::SignerCreation => write!(f, "Signer creation error"),
       Self::KeyDerivation => write!(f, "Key derivation error"),
       Self::AlreadyUnlocked => write!(f, "Already unlocked"),
-      Self::VaultRestoreFromBytes(message) => write!(f, "Vault restore from bytes error: {}", message),
+      Self::VaultRestoreFromBytes(message) => {
+        write!(f, "Vault restore from bytes error: {}", message)
+      }
       Self::SafeCreation => write!(f, "Safe creation error"),
       Self::SafeDecrypt => write!(f, "Safe decryption error"),
       Self::SafeExport => write!(f, "Safe export error"),

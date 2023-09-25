@@ -1,4 +1,7 @@
-use std::{sync::{Arc, Mutex}, fmt::{Debug, Formatter, Result}};
+use std::{
+  fmt::{Debug, Formatter, Result},
+  sync::{Arc, Mutex},
+};
 
 type Listener<T> = dyn FnMut(&T) -> ();
 
