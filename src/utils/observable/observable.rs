@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use super::{ObservableError, Observer};
 
 /// A store for state that can be subscribed to
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Observable<S> {
   state: S,
   observers: Vec<Observer<S>>,

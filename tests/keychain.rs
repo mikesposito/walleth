@@ -109,6 +109,21 @@ mod unlock {
   }
 }
 
+mod recover {
+  use super::*;
+
+  #[test]
+  fn it_recovers_the_keychain() {
+    let mut keychain = Keychain::new();
+    keychain.add_account().unwrap();
+    let backup = keychain.backup("password").unwrap();
+
+    let recovered = Keychain::restore(backup, "password").unwrap();
+
+    assert_eq!(recovered, keychain);
+  }
+}
+
 mod update {
 
   use super::*;

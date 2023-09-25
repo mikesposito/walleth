@@ -15,7 +15,7 @@ pub struct KeychainState {
 /// A `Keychain` is a collection of accounts with signing capabilities
 /// It is backed by an encrypted vault which holds the mnemonic
 /// and some metadata for generated accounts.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Keychain {
   /// The vault
   vault: Vault,
@@ -164,6 +164,58 @@ impl Keychain {
     })?;
 
     Ok(&self.store.get_state().accounts)
+  }
+
+  /// Backup the keychain
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// use walleth::Keychain;
+  ///
+  /// let mut keychain = Keychain::new();
+  /// let account = keychain.add_account().unwrap();
+  ///
+  /// let backup = keychain.backup("password").unwrap();
+  ///
+  /// assert!(backup.len() > 0);
+  /// ```
+  pub fn backup(&mut self, password: &str) -> Result<Vec<u8>, KeychainError> {
+    if self.vault.is_unlocked() {
+      self.lock(password)?;
+      let bytes = self.vault.to_bytes()?;
+      self.unlock(password)?;
+
+      return Ok(bytes);
+    }
+
+    Ok(self.vault.to_bytes()?)
+  }
+
+  /// Restore a keychain from a backup
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// use walleth::Keychain;
+  ///
+  /// let mut keychain = Keychain::new();
+  /// let account = keychain.add_account().unwrap();
+  /// let backup = keychain.backup("password").unwrap();
+  ///
+  /// let restored_keychain = Keychain::restore(backup, "password").unwrap();
+  ///
+  /// assert_eq!(keychain, restored_keychain);
+  /// ```
+  pub fn restore(bytes: Vec<u8>, password: &str) -> Result<Self, KeychainError> {
+    let mut keychain = Keychain {
+      vault: Vault::try_from(bytes)?,
+      store: Observable::new(KeychainState { accounts: vec![] }),
+    };
+
+    keychain.unlock(password)?;
+
+    Ok(keychain)
   }
 }
 

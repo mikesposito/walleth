@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+  fmt::{Debug, Formatter, Result},
+  sync::{Arc, Mutex},
+};
 
 type Listener<T> = dyn FnMut(&T) -> ();
 
@@ -14,5 +17,11 @@ impl<S> Observer<S> {
       id,
       callback: callback,
     }
+  }
+}
+
+impl<S> Debug for Observer<S> {
+  fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    write!(f, "Observer {{ id: {} }}", self.id)
   }
 }
