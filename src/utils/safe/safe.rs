@@ -1,6 +1,6 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::{ChaCha20Poly1305Cipher, CipherKey};
+use crate::{ChaCha20Poly1305Cipher, CipherKey, SafeError};
 
 /// A safe is a container for encrypted data.
 /// It holds some metadata and encrypted bytes.
@@ -19,9 +19,8 @@ use crate::{ChaCha20Poly1305Cipher, CipherKey};
 /// let safe = Safe::from_plain_bytes("metadata", &[0; 32], &[0, 1, 2, 3, 4]).unwrap();
 ///
 /// assert_eq!(safe.metadata, "metadata");
-/// assert_ne!(safe.get_bytes(), &[0, 1, 2, 3]);
 /// ```
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Safe<T> {
   pub metadata: T,
   encrypted_bytes: Box<[u8]>,
@@ -41,7 +40,6 @@ impl<T> Safe<T> {
   /// let safe = Safe::from_plain_bytes("metadata", &[0_u8; 32], &[0, 1, 2, 3, 4]).unwrap();
   ///
   /// assert_eq!(safe.metadata, "metadata");
-  /// assert_ne!(safe.get_bytes(), &[0, 1, 2, 3, 4]);
   /// ```
   pub fn from_plain_bytes(
     metadata: T,
@@ -77,19 +75,27 @@ impl<T> Safe<T> {
       &self.encrypted_bytes,
     )?)
   }
+}
 
-  /// Get the encrypted bytes
-  pub fn get_bytes(&self) -> &[u8] {
-    &self.encrypted_bytes
+impl<T> Safe<T>
+where
+  T: Serialize,
+{
+  /// Serialize `Safe` to bytes
+  pub fn to_bytes(&self) -> Result<Vec<u8>, SafeError> {
+    Ok(bincode::serialize(&self).or(Err(SafeError::Serialization))?)
   }
 }
 
-impl<T> From<Vec<u8>> for Safe<T>
+impl<T> TryFrom<Vec<u8>> for Safe<T>
 where
   T: DeserializeOwned,
 {
-  fn from(bytes: Vec<u8>) -> Self {
-    bincode::deserialize(&bytes).unwrap()
+  type Error = SafeError;
+
+  /// Deserialize `Safe` from bytes
+  fn try_from(bytes: Vec<u8>) -> Result<Self, SafeError> {
+    Ok(bincode::deserialize(&bytes).or(Err(SafeError::Deserialization))?)
   }
 }
 

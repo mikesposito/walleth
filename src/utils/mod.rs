@@ -8,4 +8,4 @@ pub mod safe;
 pub use controller::Controller;
 pub use hdwallet::*;
 pub use observable::{Observable, Observer};
-pub use safe::*;
+pub use safe::{ChaCha20Poly1305Cipher, CipherKey, CipherNonce, EncryptionKey, Safe, SafeError};

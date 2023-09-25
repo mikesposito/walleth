@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Formatter};
+
 use secp256k1::SecretKey;
 use serde::{Deserialize, Serialize};
 
@@ -86,6 +88,20 @@ impl Vault {
       private_keys: vec![],
       safe: None,
     })
+  }
+
+  /// Check if the vault is locked
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// use walleth::Vault;
+  ///
+  /// let mut vault = Vault::new();
+  ///
+  /// assert!(vault.is_unlocked());
+  pub fn is_unlocked(&self) -> bool {
+    self.safe.is_none()
   }
 
   /// Add a new key to the vault
@@ -240,6 +256,17 @@ impl Vault {
     }
   }
 
+  /// Serializes the vault to bytes if it is locked
+  /// this operation fails when the vault is unlocked
+  /// as no safe has been created, and the exported bytes would
+  /// be unencrypted.
+  pub fn to_bytes(&self) -> Result<Vec<u8>, VaultError> {
+    match &self.safe {
+      Some(safe) => Ok(safe.to_bytes()?),
+      None => Err(VaultError::ForbiddenWhileUnlocked),
+    }
+  }
+
   /// Get the HD wallet of the vault
   fn get_hdwallet(&mut self) -> Result<&mut HDWallet, VaultError> {
     match &mut self.hdwallet {
@@ -249,9 +276,15 @@ impl Vault {
   }
 }
 
-impl From<Vec<u8>> for Vault {
-  fn from(bytes: Vec<u8>) -> Self {
-    bincode::deserialize(&bytes).unwrap()
+impl TryFrom<Vec<u8>> for Vault {
+  type Error = VaultError;
+
+  fn try_from(bytes: Vec<u8>) -> Result<Self, VaultError> {
+    Ok(Self {
+      hdwallet: None,
+      private_keys: vec![],
+      safe: Some(Safe::try_from(bytes)?),
+    })
   }
 }
 
@@ -260,5 +293,11 @@ impl PartialEq for Vault {
     self.hdwallet == other.hdwallet
       && self.private_keys == other.private_keys
       && self.safe == other.safe
+  }
+}
+
+impl Debug for Vault {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("Vault").field("safe", &self.safe).finish()
   }
 }
