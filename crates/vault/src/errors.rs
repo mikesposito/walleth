@@ -17,8 +17,8 @@ pub enum VaultError {
   VaultRestoreFromBytes(String),
   SafeCreation,
   SafeDecrypt,
-  SafeExport,
-  SafeRestore,
+  SafeExport(String),
+  SafeRestore(String),
 }
 
 impl Display for VaultError {
@@ -37,8 +37,8 @@ impl Display for VaultError {
       }
       Self::SafeCreation => write!(f, "Safe creation error"),
       Self::SafeDecrypt => write!(f, "Safe decryption error"),
-      Self::SafeExport => write!(f, "Safe export error"),
-      Self::SafeRestore => write!(f, "Safe restore error"),
+      Self::SafeExport(message) => write!(f, "Safe export error > {}", message),
+      Self::SafeRestore(message) => write!(f, "Safe restore error > {}", message),
       Self::IdentityError(error) => write!(f, "{}", error),
     }
   }
@@ -59,8 +59,8 @@ impl From<SignerError> for VaultError {
 impl From<SafeError> for VaultError {
   fn from(error: SafeError) -> Self {
     match error {
-      SafeError::Serialization => Self::SafeExport,
-      SafeError::Deserialization => Self::SafeRestore,
+      SafeError::Serialization(message) => Self::SafeExport(message),
+      SafeError::Deserialization(message) => Self::SafeRestore(message),
     }
   }
 }

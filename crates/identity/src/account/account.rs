@@ -1,5 +1,4 @@
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
-use serde::{Deserialize, Serialize};
 
 use super::AccountError;
 use utils::{
@@ -7,7 +6,7 @@ use utils::{
   hex::{add0x, assert_is_valid_hex_address, encode},
 };
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Account<T> {
   pub address: String,
   pub public_key: Vec<u8>,

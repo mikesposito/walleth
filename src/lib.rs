@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 pub use identity::account::{Account, AccountError};
 pub use identity::signer::{Signer, SignerError};
 pub use identity::{GenericIdentity, Initializable, KeyPair, MultiKeyPair};

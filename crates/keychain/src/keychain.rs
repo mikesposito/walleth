@@ -1,7 +1,5 @@
-use hdkey::HDKey;
-use serde::{Deserialize, Serialize};
-
 use super::KeychainError;
+use hdkey::HDKey;
 use identity::{Account, IdentityError, Initializable, MultiKeyPair};
 use utils::{Controller, Observable};
 use vault::{Vault, VaultError};
@@ -14,7 +12,7 @@ where
   MultiKeyPair(Vault<M>),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct KeychainState {
   /// The accounts in the keychain
   /// This is a list of public accounts

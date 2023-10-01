@@ -1,6 +1,5 @@
 use bip32::XPrv;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
-use serde::{Deserialize, Serialize};
 
 use crate::{
   utils::{generate_seed_bytes, get_derivation_path, parse_mnemonic},
@@ -11,7 +10,7 @@ use identity::{
   Account, AccountDeriver, GenericIdentity, IdentityError, Initializable, MultiKeyPair,
 };
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct HDKey {
   seed: Vec<u8>,
 }

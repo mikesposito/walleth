@@ -28,7 +28,3 @@ path = "../utils"
 [dependencies.vault]
 package = "walleth-vault"
 path = "../vault"
-
-[dependencies.serde]
-version = "~1.0.188"
-features = ["derive"]

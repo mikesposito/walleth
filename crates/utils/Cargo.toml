@@ -19,6 +19,5 @@ version = "~0.4.3"
 [dependencies.sha3]
 version = "~0.10.8"
 
-[dependencies.serde]
-version = "~1.0.188"
-features = ["derive"]
+[dependencies.secp256k1]
+version = "~0.27.0"
