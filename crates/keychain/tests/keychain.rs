@@ -50,7 +50,7 @@ mod add_multi_keypair {
 mod recover {
   use walleth_keychain::hdkey_factory;
 
-use super::*;
+  use super::*;
 
   #[test]
   fn it_recovers_the_keychain() {

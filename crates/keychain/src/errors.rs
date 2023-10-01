@@ -24,7 +24,9 @@ impl Display for KeychainError {
       KeychainError::EventEmitterError(error) => write!(f, "Event emitter error: {}", error),
       KeychainError::KeyNotFoundForIndex(index) => write!(f, "Key not found for index {}", index),
       KeychainError::ByteSerializationError => write!(f, "Byte serialization error"),
-      KeychainError::ByteDeserializationError(message) => write!(f, "Byte deserialization error: {}", message),
+      KeychainError::ByteDeserializationError(message) => {
+        write!(f, "Byte deserialization error: {}", message)
+      }
     }
   }
 }
