@@ -19,7 +19,3 @@ path = "../utils"
 
 [dependencies.secp256k1]
 version = "~0.27.0"
-
-[dependencies.serde]
-version = "~1.0.188"
-features = ["derive"]

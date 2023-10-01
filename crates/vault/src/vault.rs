@@ -62,7 +62,7 @@ impl<T> Vault<T> {
   /// be unencrypted.
   pub fn to_bytes(&self) -> Result<Vec<u8>, VaultError> {
     match &self.safe {
-      Some(safe) => Ok(safe.to_bytes()?),
+      Some(safe) => Ok(safe.clone().into()),
       None => Err(VaultError::ForbiddenWhileUnlocked),
     }
   }
