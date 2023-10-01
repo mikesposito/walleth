@@ -1,0 +1,25 @@
+[package]
+name = "walleth-identity"
+version = "0.0.0"
+authors = ["mikesposito"]
+readme="README.md"
+edition = "2021"
+repository = "https://github.com/mikesposito/walleth/crates/walleth-identity"
+keywords = [
+	"ethereum",
+	"wallet",
+	"library",
+	"crypto",
+	"signing",
+]
+
+[dependencies.utils]
+package = "walleth-utils"
+path = "../utils"
+
+[dependencies.secp256k1]
+version = "~0.27.0"
+
+[dependencies.serde]
+version = "~1.0.188"
+features = ["derive"]
