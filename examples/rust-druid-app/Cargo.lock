@@ -1844,8 +1844,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "walleth-example-app"
-version = "0.0.1"
+name = "walleth-rust-druid-app"
+version = "0.0.0"
 dependencies = [
  "druid",
  "walleth",

@@ -1,0 +1,21 @@
+[package]
+name = "walleth-demo-keychain-performance"
+version = "0.0.0"
+authors = ["mikesposito"]
+readme="README.md"
+edition = "2021"
+repository = "https://github.com/mikesposito/walleth/"
+keywords = [
+	"ethereum",
+	"wallet",
+	"library",
+	"crypto",
+	"signing",
+]
+
+[dependencies]
+walleth = { path = "../../" }
+
+[[bin]]
+name = "walleth-demo-keychain-performance"
+path = "src/main.rs"

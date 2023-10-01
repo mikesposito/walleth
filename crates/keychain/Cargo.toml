@@ -1,0 +1,34 @@
+[package]
+name = "walleth-keychain"
+version = "0.0.0"
+authors = ["mikesposito"]
+readme="README.md"
+edition = "2021"
+repository = "https://github.com/mikesposito/walleth/crates/walleth-identity"
+keywords = [
+	"ethereum",
+	"wallet",
+	"library",
+	"crypto",
+	"signing",
+]
+
+[dependencies.identity]
+package = "walleth-identity"
+path = "../identity"
+
+[dependencies.hdkey]
+package = "walleth-keychain-hdkey"
+path = "./hdkey"
+
+[dependencies.utils]
+package = "walleth-utils"
+path = "../utils"
+
+[dependencies.vault]
+package = "walleth-vault"
+path = "../vault"
+
+[dependencies.serde]
+version = "~1.0.188"
+features = ["derive"]
