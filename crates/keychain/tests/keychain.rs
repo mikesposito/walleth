@@ -48,12 +48,17 @@ mod add_multi_keypair {
 }
 
 mod recover {
-  use super::*;
+  use walleth_keychain::hdkey_factory;
+
+use super::*;
 
   #[test]
   fn it_recovers_the_keychain() {
     let mut keychain = Keychain::new();
-    keychain.add_account().unwrap();
+    println!("keychain: {:?}", keychain);
+    keychain.add_multi_keypair(hdkey_factory, None).unwrap();
+    keychain.add_multi_keypair(hdkey_factory, None).unwrap();
+    keychain.add_multi_keypair(hdkey_factory, None).unwrap();
     let backup = keychain.backup("password").unwrap();
 
     let recovered = Keychain::restore(backup, "password").unwrap();

@@ -1,5 +1,6 @@
 use std::{error::Error, fmt::Display};
 
+use identity::IdentityError;
 use utils::observable::ObservableError;
 use vault::VaultError;
 
@@ -9,6 +10,8 @@ pub enum KeychainError {
   KeyNotFoundForAddress(String),
   EventEmitterError(ObservableError),
   KeyNotFoundForIndex(usize),
+  ByteSerializationError,
+  ByteDeserializationError(String),
 }
 
 impl Display for KeychainError {
@@ -20,6 +23,8 @@ impl Display for KeychainError {
       }
       KeychainError::EventEmitterError(error) => write!(f, "Event emitter error: {}", error),
       KeychainError::KeyNotFoundForIndex(index) => write!(f, "Key not found for index {}", index),
+      KeychainError::ByteSerializationError => write!(f, "Byte serialization error"),
+      KeychainError::ByteDeserializationError(message) => write!(f, "Byte deserialization error: {}", message),
     }
   }
 }
@@ -33,6 +38,14 @@ impl From<VaultError> for KeychainError {
 impl From<ObservableError> for KeychainError {
   fn from(error: ObservableError) -> Self {
     Self::EventEmitterError(error)
+  }
+}
+
+impl IdentityError for KeychainError {}
+
+impl Into<Box<dyn IdentityError>> for KeychainError {
+  fn into(self) -> Box<dyn IdentityError> {
+    Box::new(self)
   }
 }
 

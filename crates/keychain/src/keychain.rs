@@ -4,8 +4,9 @@ use serde::{Deserialize, Serialize};
 use super::KeychainError;
 use identity::{Account, IdentityError, Initializable, MultiKeyPair};
 use utils::{Controller, Observable};
-use vault::Vault;
+use vault::{Vault, VaultError};
 
+#[derive(Debug)]
 pub enum KeyPair<M = HDKey>
 where
   M: MultiKeyPair<[u8; 32], [u8; 33], usize>,
@@ -23,6 +24,7 @@ pub struct KeychainState {
 /// A `Keychain` is a collection of keyparis with different capabilities.
 /// Each keypair is stored in a `Vault`, which provides basic encryption features
 /// and serialization / deserialization from bytes.
+#[derive(Debug)]
 pub struct Keychain<M = HDKey>
 where
   M: MultiKeyPair<[u8; 32], [u8; 33], usize>,
@@ -45,7 +47,12 @@ where
     }
   }
 
-  /// Add a new `KeyPair` to the `Keychain` with multiple 
+  /// Add an existing keypair to the keychain
+  pub fn add_key_pair(&mut self, key_pair: KeyPair<M>) {
+    self.key_pairs.push(key_pair);
+  }
+
+  /// Add a new `KeyPair` to the `Keychain` with multiple
   /// private keys derivation capabilities
   pub fn add_multi_keypair<F, A>(&mut self, factory: F, args: A) -> Result<&M, KeychainError>
   where
@@ -105,25 +112,80 @@ where
     )
   }
 
-  /// Backup the keychain
-  pub fn backup(&mut self, password: &str) -> Result<Vec<u8>, KeychainError> {
-    if self.vault.is_unlocked() {
-      self.lock(password)?;
-      let bytes = self.vault.to_bytes()?;
-      self.unlock(password)?;
+  /// Backup the `Keychain` serializing all the keypairs to bytes and encrypting them
+  pub fn backup(&mut self, password: &str) -> Result<Vec<u8>, KeychainError>
+  where
+    M: Initializable,
+  {
+    let mut bytes_matrix = self
+      .key_pairs
+      .iter_mut()
+      .map(|key_pair| match key_pair {
+        KeyPair::MultiKeyPair(vault) => {
+          if vault.is_unlocked() {
+            vault.lock(password.as_bytes())?;
+            let bytes = vault.to_bytes()?;
+            vault.unlock(password.as_bytes())?;
+            // 0u8 is a byte representation of a MultiKeyPair
+            return Ok((0u8, bytes));
+          }
 
-      return Ok(bytes);
-    }
+          // 0u8 is a byte representation of a MultiKeyPair
+          Ok((0u8, vault.to_bytes()?))
+        }
+      })
+      .collect::<Result<Vec<(u8, Vec<u8>)>, VaultError>>()?;
 
-    Ok(self.vault.to_bytes()?)
+    let mut condensed: Vec<u8> = vec![];
+    bytes_matrix
+      .iter_mut()
+      .try_for_each(|(vault_type, bytes)| {
+        let length = u8::try_from(bytes.len()).or(Err(KeychainError::ByteSerializationError))?;
+        // The length of the bytes is prepended to the type of vault
+        condensed.append(&mut [length].to_vec());
+        // The type of vault is prepended to the bytes
+        condensed.append(&mut [*vault_type].to_vec());
+        condensed.append(bytes);
+        Ok::<(), KeychainError>(())
+      })?;
+
+    Ok(condensed)
   }
 
-  /// Restore a keychain from a backup
-  pub fn restore(bytes: Vec<u8>, password: &str) -> Result<Self, KeychainError> {
-    let mut keychain = Keychain {
-      vault: Vault::try_from(bytes)?,
+  /// Restore a `Keychain` from a backup
+  pub fn restore(backup: Vec<u8>, password: &str) -> Result<Self, KeychainError>
+  where
+    M: Initializable,
+  {
+    let mut keychain = Keychain::<M> {
+      key_pairs: vec![],
       store: Observable::new(KeychainState { accounts: vec![] }),
     };
+    // Loop through the bytes and deserialize the vaults
+    let mut bytes = backup.clone();
+    while bytes.len() > 0 {
+      // Each vault has a byte to represent the size
+      let length = usize::try_from(bytes[0]).or(Err(KeychainError::ByteDeserializationError(
+        "Error casting bytes vector length to usize".to_string(),
+      )))?;
+      // And one to represent its type
+      let key_pair_type = bytes[1];
+
+      match key_pair_type {
+        0u8 => {
+          bytes = bytes[2..].to_vec().drain(..length).collect::<Vec<u8>>();
+          let key_pair = KeyPair::MultiKeyPair(Vault::<M>::try_from(bytes.clone())?);
+
+          keychain.add_key_pair(key_pair);
+        }
+        unsupported => {
+          return Err(KeychainError::ByteDeserializationError(format!(
+            "Unsupported key pair type: {}",
+            unsupported
+          )))
+        }
+      }
+    }
 
     keychain.unlock(password)?;
 
@@ -156,5 +218,19 @@ impl Controller<KeychainState, KeychainError> for Keychain {
   /// Unsubscribe from state changes
   fn unsubscribe(&mut self, id: usize) {
     self.store.unsubscribe(id)
+  }
+}
+
+impl PartialEq for KeyPair {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (KeyPair::MultiKeyPair(vault), KeyPair::MultiKeyPair(other_vault)) => vault == other_vault,
+    }
+  }
+}
+
+impl PartialEq for Keychain {
+  fn eq(&self, other: &Self) -> bool {
+    self.key_pairs == other.key_pairs
   }
 }
