@@ -43,9 +43,9 @@ impl From<ObservableError> for KeychainError {
 
 impl IdentityError for KeychainError {}
 
-impl Into<Box<dyn IdentityError>> for KeychainError {
-  fn into(self) -> Box<dyn IdentityError> {
-    Box::new(self)
+impl From<KeychainError> for Box<dyn IdentityError> {
+  fn from(val: KeychainError) -> Self {
+    Box::new(val)
   }
 }
 

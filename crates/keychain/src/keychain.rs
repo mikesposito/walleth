@@ -163,7 +163,7 @@ where
     };
     // Loop through the bytes and deserialize the vaults
     let mut bytes = backup.clone();
-    while bytes.len() > 0 {
+    while !bytes.is_empty() {
       // Each vault has a byte to represent the size
       let length = usize::try_from(bytes[0]).or(Err(KeychainError::ByteDeserializationError(
         "Error casting bytes vector length to usize".to_string(),

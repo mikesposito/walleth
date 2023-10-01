@@ -46,7 +46,7 @@ where
 {
   /// Serialize `Safe` to bytes
   pub fn to_bytes(&self) -> Result<Vec<u8>, SafeError> {
-    Ok(bincode::serialize(&self).or(Err(SafeError::Serialization))?)
+    bincode::serialize(&self).or(Err(SafeError::Serialization))
   }
 }
 
@@ -58,7 +58,7 @@ where
 
   /// Deserialize `Safe` from bytes
   fn try_from(bytes: Vec<u8>) -> Result<Self, SafeError> {
-    Ok(bincode::deserialize(&bytes).or(Err(SafeError::Deserialization))?)
+    bincode::deserialize(&bytes).or(Err(SafeError::Deserialization))
   }
 }
 
