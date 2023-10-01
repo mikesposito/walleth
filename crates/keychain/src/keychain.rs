@@ -173,8 +173,8 @@ where
 
       match key_pair_type {
         0u8 => {
-          bytes = bytes[2..].to_vec().drain(..length).collect::<Vec<u8>>();
-          let key_pair = KeyPair::MultiKeyPair(Vault::<M>::try_from(bytes.clone())?);
+          let key_pair_bytes = bytes[2..(length + 2)].to_vec();
+          let key_pair = KeyPair::MultiKeyPair(Vault::<M>::try_from(key_pair_bytes)?);
 
           keychain.add_key_pair(key_pair);
         }
@@ -185,6 +185,8 @@ where
           )))
         }
       }
+
+      bytes = bytes[(length + 2)..].to_vec();
     }
 
     keychain.unlock(password)?;

@@ -55,7 +55,6 @@ use super::*;
   #[test]
   fn it_recovers_the_keychain() {
     let mut keychain = Keychain::new();
-    println!("keychain: {:?}", keychain);
     keychain.add_multi_keypair(hdkey_factory, None).unwrap();
     keychain.add_multi_keypair(hdkey_factory, None).unwrap();
     keychain.add_multi_keypair(hdkey_factory, None).unwrap();
