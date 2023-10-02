@@ -1,4 +1,4 @@
-use hdkey::HDKey;
+use super::HDKey;
 use identity::{IdentityError, Initializable};
 
 pub fn hdkey_factory(mnemonic: Option<String>) -> Result<HDKey, Box<dyn IdentityError>> {
