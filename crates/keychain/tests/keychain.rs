@@ -15,7 +15,7 @@ mod new {
 }
 
 mod add_multi_keypair {
-  use walleth_keychain::hdkey_factory;
+  use hdkey::hdkey_factory;
 
   use super::*;
 
@@ -48,7 +48,7 @@ mod add_multi_keypair {
 }
 
 mod recover {
-  use walleth_keychain::hdkey_factory;
+  use hdkey::hdkey_factory;
 
   use super::*;
 

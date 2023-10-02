@@ -1,5 +1,5 @@
-use hdkey::HDKey;
-use identity::{IdentityError, Initializable};
+use identity::{Initializable, IdentityError};
+use super::HDKey;
 
 pub fn hdkey_factory(mnemonic: Option<String>) -> Result<HDKey, Box<dyn IdentityError>> {
   match mnemonic {
